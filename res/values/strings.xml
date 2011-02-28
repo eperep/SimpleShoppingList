@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Simple Shopping List!</string>
+    
+    <string name="added">Added</string>
+    
+    <string name="dialog_exit_title">Exit</string>
+    <string name="dialog_exit_message">Do you really want to exit?</string>
+    
+    <string name="dialog_remove_title">Remove Item</string>
+    <string name="dialog_remove_message">Do you really want to remove this item?</string>
+    
+    <string name="dialog_clear_title">Clear List</string>
+    <string name="dialog_clear_message">Do you really want to remove all items?</string>
+    
+    <string name="dialog_new_item_title">Add new Item</string>
+    <string name="dialog_new_item_message">Enter new Item Name</string>
+    
+    <string name="err_no_items_yet">No items yet.\nTo add some please hit "menu".</string>
+    <string name="err_elem_not_entered">No Name entered</string>
+    
+    <string name="button_ok">OK</string>
+    <string name="button_cancel">Cancel</string>
+    
+    <string name="menu_clear">Clear list</string>
+    <string name="menu_add_item">Add item</string>
+    <string name="menu_exit">Exit</string>
+</resources>
