@@ -4,6 +4,11 @@
 			android:title="@string/menu_add_item"
 			android:icon="@android:drawable/ic_menu_add"  
 			android:alphabeticShortcut="a" />
+	
+	<item 	android:id="@+id/menu_manage_lists" 
+			android:title="@string/menu_manage_lists"
+			android:icon="@android:drawable/ic_menu_agenda"  
+			android:alphabeticShortcut="l" />
 
 	<item 	android:id="@+id/menu_clear" 
 			android:title="@string/menu_clear"

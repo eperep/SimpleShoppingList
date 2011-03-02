@@ -3,7 +3,7 @@
       package="at.mkweb.android.simpleshoppinglist"
       android:versionCode="1"
       android:versionName="1.0">
-    <application android:label="@string/app_name" android:icon="@drawable/simpleshoppinglist" android:debuggable="false">
+    <application android:label="@string/app_name" android:icon="@drawable/simpleshoppinglist" android:debuggable="true">
         <activity android:name=".SimpleShoppingList"
                   android:label="@string/app_name">
             <intent-filter>
@@ -11,6 +11,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+        <activity android:name=".ManageLists" android:label="@string/manage_lists_title"></activity>
 
     </application>
     <uses-sdk android:minSdkVersion="6" />

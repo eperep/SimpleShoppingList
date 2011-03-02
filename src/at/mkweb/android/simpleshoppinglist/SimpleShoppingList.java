@@ -28,6 +28,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
@@ -42,11 +43,12 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -55,10 +57,24 @@ public class SimpleShoppingList extends Activity implements OnClickListener, OnL
 	LinearLayout linear;
 	SQLiteDatabase db;
 	
+	
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        
+        setContentView(R.layout.main);
+    	
+    	((Button) findViewById(R.id.button_add)).setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				
+				showAddElementDialog();
+			}
+		});
+
         loadDatabase();
         updateList();
     }
@@ -71,103 +87,39 @@ public class SimpleShoppingList extends Activity implements OnClickListener, OnL
         
     	return true;
     }
+    
+    private void addElement(String name) {
 
+        try {
+        	db.execSQL("INSERT INTO items (id, name, active) VALUES (NULL, '" + name + "', 1);");
+        } catch (Exception e) {
+        	showToast(e.getMessage());
+        }
+        
+        updateList();
+    }
+    
     public boolean onOptionsItemSelected (MenuItem item){
 
     	if(item.getItemId() ==  R.id.menu_add_item) {
     		
-    		final EditText et = new EditText(this);
+    		showAddElementDialog();
+    	}
+    	
+    	if(item.getItemId() == R.id.menu_manage_lists) {
     		
-    		AlertDialog.Builder b = new AlertDialog.Builder(this);
-    		b.setView(et);
-    		b.setPositiveButton(getText(R.string.button_ok), new AlertDialog.OnClickListener() {
-				
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					
-					String value = et.getText().toString().trim();
-					
-					if(value.length() > 0) {
-						
-						showToast(getText(R.string.added) + ": " + value);
-						addElement(value);
-					} else {
-						
-						showToast(getText(R.string.err_elem_not_entered).toString());
-					}
-					dialog.cancel();
-				}
-			});
-    		
-    		b.setNegativeButton(getText(R.string.button_cancel), new AlertDialog.OnClickListener() {
-				
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					
-					dialog.cancel();
-				}
-			}); 
-    		
-    		AlertDialog dialog = b.create();
-    		
-    		dialog.setTitle(getText(R.string.dialog_new_item_title));
-    		dialog.setMessage(getText(R.string.dialog_new_item_message));
-    		
-    		dialog.show();
-    		return true;
+    		Intent manageListsIntent = new Intent(this, ManageLists.class);
+    		startActivityForResult(manageListsIntent, 0);
     	}
     	
     	if(item.getItemId() == R.id.menu_clear) {
     		
-    		AlertDialog.Builder b = new AlertDialog.Builder(this);
-    		b.setPositiveButton(getText(R.string.button_ok), new AlertDialog.OnClickListener() {
-    			@Override
-    			public void onClick(DialogInterface dialog, int which) {
-    				
-    				db.execSQL("DELETE FROM items;");
-    				updateList();
-    				dialog.cancel();
-    			}
-    		});
-    		b.setNegativeButton(getText(R.string.button_cancel), new AlertDialog.OnClickListener() {
-    			@Override
-    			public void onClick(DialogInterface dialog, int which) {
-    				
-    				dialog.cancel();
-    			}
-    		});
-    		
-    		AlertDialog d = b.create();
-    		d.setTitle(getText(R.string.dialog_clear_title));
-    		d.setMessage(getText(R.string.dialog_clear_message));
-    		
-    		d.show();
+    		showListClearDialog();
     	}
 
     	if(item.getItemId() == R.id.menu_exit) {
 
-    		AlertDialog.Builder b = new AlertDialog.Builder(this);
-    		b.setPositiveButton(getText(R.string.button_ok), new AlertDialog.OnClickListener() {
-    			@Override
-    			public void onClick(DialogInterface dialog, int which) {
-    				
-    				dialog.cancel();
-    				System.exit(0);
-    			}
-    		});
-    		b.setNegativeButton(getText(R.string.button_cancel), new AlertDialog.OnClickListener() {
-    			@Override
-    			public void onClick(DialogInterface dialog, int which) {
-    				
-    				dialog.cancel();
-    			}
-    		});
-    		
-    		AlertDialog d = b.create();
-    		d.setTitle(getText(R.string.dialog_exit_title));
-    		d.setMessage(getText(R.string.dialog_exit_message));
-    		
-    		d.show();
+    		showExitDialog();
     	}
 
     	return false;
@@ -184,34 +136,21 @@ public class SimpleShoppingList extends Activity implements OnClickListener, OnL
     	toast.show();
     }
     
-    private void addElement(String name) {
-
-        try {
-        	db.execSQL("INSERT INTO items (id, name, active) VALUES (NULL, '" + name + "', 1);");
-        } catch (Exception e) {
-        	showToast(e.getMessage());
-        }
-        
-        updateList();
-    }
-    
     private void updateList() {
     	
-        linear = new LinearLayout(this);
-        linear.setOrientation(LinearLayout.VERTICAL);
-        linear.setPadding(30, 30, 30, 30);
-
-        ScrollView sv = new ScrollView(this);
-        sv.addView(linear);
-        sv.setBackgroundColor(Color.WHITE);
+    	if(linear != null) {
+    		
+    		linear.removeAllViews();
+    	} else {
+    		
+    		linear = (LinearLayout) findViewById(R.id.ContentLinearLayout);
+    	}
         
         Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.paper);
         BitmapDrawable bitmapDrawable = new BitmapDrawable(bmp);
         bitmapDrawable.setTileModeXY(Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
         
-        sv.setBackgroundDrawable(bitmapDrawable);
-        
-        setContentView(sv);
+        linear.setBackgroundDrawable(bitmapDrawable);
     	
     	Cursor c = db.rawQuery("SELECT id, name, active FROM items;", null);
         
@@ -223,16 +162,16 @@ public class SimpleShoppingList extends Activity implements OnClickListener, OnL
         	c.moveToFirst();
         	
         	do {
-        	
 	        	String name = c.getString(c.getColumnIndex("name"));
 	        	String active = c.getString(c.getColumnIndex("active"));
 	        	
 	        	TextView text = new TextView(this);
+	        	
 	            
 	            text.setText(name);
 	            text.setId(new Integer(c.getString(c.getColumnIndex("id"))));
 	            text.setTextColor(Color.BLACK);
-	            text.setTextSize(30);
+	            text.setTextSize(26);
 	            
 	            text.setClickable(true);
 	            text.setOnClickListener(this);
@@ -255,7 +194,7 @@ public class SimpleShoppingList extends Activity implements OnClickListener, OnL
 
 	@Override
 	public void onClick(View v) {
-		
+			
 		Cursor c = db.rawQuery("SELECT active FROM items WHERE id = " + v.getId(), null);
 		
 		if(c.getCount() == 1) {
@@ -287,6 +226,7 @@ public class SimpleShoppingList extends Activity implements OnClickListener, OnL
 		
 		AlertDialog.Builder b = new AlertDialog.Builder(this);
 		b.setPositiveButton(getText(R.string.button_ok), new AlertDialog.OnClickListener() {
+			
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				
@@ -296,6 +236,7 @@ public class SimpleShoppingList extends Activity implements OnClickListener, OnL
 			}
 		});
 		b.setNegativeButton(getText(R.string.button_cancel), new AlertDialog.OnClickListener() {
+			
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				
@@ -313,6 +254,102 @@ public class SimpleShoppingList extends Activity implements OnClickListener, OnL
 		d.show();
 		return false;
 	}
+	
+
+    public void showAddElementDialog() {
+    	
+    	final EditText et = new EditText(this);
+		
+		AlertDialog.Builder b = new AlertDialog.Builder(this);
+		b.setView(et);
+		b.setPositiveButton(getText(R.string.button_ok), new AlertDialog.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				
+				String value = et.getText().toString().trim();
+				
+				if(value.length() > 0) {
+					
+					showToast(getText(R.string.added) + ": " + value);
+					addElement(value);
+				} else {
+					
+					showToast(getText(R.string.err_elem_not_entered).toString());
+				}
+				dialog.cancel();
+			}
+		});
+		
+		b.setNegativeButton(getText(R.string.button_cancel), new AlertDialog.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				
+				dialog.cancel();
+			}
+		}); 
+		
+		AlertDialog dialog = b.create();
+		
+		dialog.setTitle(getText(R.string.dialog_new_item_title));
+		dialog.setMessage(getText(R.string.dialog_new_item_message));
+		
+		dialog.show();
+    }
+    
+    public void showListClearDialog() {
+    	
+    	AlertDialog.Builder b = new AlertDialog.Builder(this);
+		b.setPositiveButton(getText(R.string.button_ok), new AlertDialog.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				
+				db.execSQL("DELETE FROM items;");
+				updateList();
+				dialog.cancel();
+			}
+		});
+		b.setNegativeButton(getText(R.string.button_cancel), new AlertDialog.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				
+				dialog.cancel();
+			}
+		});
+		
+		AlertDialog d = b.create();
+		d.setTitle(getText(R.string.dialog_clear_title));
+		d.setMessage(getText(R.string.dialog_clear_message));
+		
+		d.show();
+    }
+    
+    public void showExitDialog() {
+    	
+    	AlertDialog.Builder b = new AlertDialog.Builder(this);
+		b.setPositiveButton(getText(R.string.button_ok), new AlertDialog.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				
+				dialog.cancel();
+				System.exit(0);
+			}
+		});
+		b.setNegativeButton(getText(R.string.button_cancel), new AlertDialog.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				
+				dialog.cancel();
+			}
+		});
+		
+		AlertDialog d = b.create();
+		d.setTitle(getText(R.string.dialog_exit_title));
+		d.setMessage(getText(R.string.dialog_exit_message));
+		
+		d.show();
+    }
 	
     private void loadDatabase() {
     	
