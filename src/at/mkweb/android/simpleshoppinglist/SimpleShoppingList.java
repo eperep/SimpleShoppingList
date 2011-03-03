@@ -26,41 +26,76 @@ package at.mkweb.android.simpleshoppinglist;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
-import android.os.Vibrator;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.View.OnClickListener;
-import android.view.View.OnLongClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.TextView;
+import android.widget.ScrollView;
 import android.widget.Toast;
 
-public class SimpleShoppingList extends Activity implements OnClickListener, OnLongClickListener {
+public class SimpleShoppingList extends Activity {
 	
 	LinearLayout linear;
 	SQLiteDatabase db;
 	
+	int categoryId;
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        start();
+    }
+    
+    public void start() {
+    	
+    	start(0);
+    }
+    
+    public void start(int id) {
+    	
+    	categoryId = id;
+    	
+    	db = openOrCreateDatabase("items", MODE_PRIVATE, null);
+    	
+        db.execSQL("CREATE TABLE IF NOT EXISTS items (id INTEGER PRIMARY KEY AUTOINCREMENT, category_id INTEGER, name VARCHAR(255), active BOOLEAN);");
+        db.execSQL("CREATE TABLE IF NOT EXISTS categories (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(255));");
+        
+        // New table structure for Version 1.2
+        try {
+        	db.rawQuery("SELECT `category_id` FROM items LIMIT 1;", null);
+        } catch(Exception e) {
+        	
+        	// http://www.sqlite.org/faq.html - (11) How do I add or delete columns from an existing table in SQLite.
+        	db.execSQL("BEGIN TRANSACTION;");
+        	db.execSQL("CREATE TABLE items_backup (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(255), active BOOLEAN);");
+        	db.execSQL("INSERT INTO items_backup SELECT id, name, active FROM items;");
+        	db.execSQL("DROP TABLE items;");
+        	db.execSQL("CREATE TABLE items (id INTEGER PRIMARY KEY AUTOINCREMENT, category_id INTEGER, name VARCHAR(255), active BOOLEAN);");
+        	db.execSQL("INSERT INTO items SELECT id, '0', name, active FROM items_backup");
+        	db.execSQL("DROP TABLE items_backup;");
+        	db.execSQL("COMMIT;");
+        }
+        
+        Cursor c = db.rawQuery("SELECT name FROM categories WHERE id = 0;", null);
+        if(c.getCount() < 1) {
+        	
+        	db.execSQL("INSERT INTO categories (id) VALUES (null);");
+        }
         
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         
@@ -74,8 +109,9 @@ public class SimpleShoppingList extends Activity implements OnClickListener, OnL
 				showAddElementDialog();
 			}
 		});
-
-        loadDatabase();
+    	
+    	Registry.add(Registry.DATABASE, db);
+    	
         updateList();
     }
     
@@ -136,7 +172,7 @@ public class SimpleShoppingList extends Activity implements OnClickListener, OnL
     	toast.show();
     }
     
-    private void updateList() {
+    public void updateList() {
     	
     	if(linear != null) {
     		
@@ -150,9 +186,9 @@ public class SimpleShoppingList extends Activity implements OnClickListener, OnL
         BitmapDrawable bitmapDrawable = new BitmapDrawable(bmp);
         bitmapDrawable.setTileModeXY(Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
         
-        linear.setBackgroundDrawable(bitmapDrawable);
+        ((ScrollView) findViewById(R.id.ScrollView)).setBackgroundDrawable(bitmapDrawable);
     	
-    	Cursor c = db.rawQuery("SELECT id, name, active FROM items;", null);
+    	Cursor c = db.rawQuery("SELECT id, name, active FROM items WHERE category_id = " + categoryId + ";", null);
         
         if(c.getCount() < 1) {
         	
@@ -163,98 +199,19 @@ public class SimpleShoppingList extends Activity implements OnClickListener, OnL
         	
         	do {
 	        	String name = c.getString(c.getColumnIndex("name"));
-	        	String active = c.getString(c.getColumnIndex("active"));
+	        	boolean active = (c.getString(c.getColumnIndex("active")).equals("1") ? true : false);
 	        	
-	        	TextView text = new TextView(this);
-	        	
+	            Item item = new Item(this);
+	            item.setId(new Integer(c.getString(c.getColumnIndex("id"))));
+	            item.setName(name);
+	            item.setActive(active);
+	            item.create();
 	            
-	            text.setText(name);
-	            text.setId(new Integer(c.getString(c.getColumnIndex("id"))));
-	            text.setTextColor(Color.BLACK);
-	            text.setTextSize(26);
-	            
-	            text.setClickable(true);
-	            text.setOnClickListener(this);
-	            
-	            if(active.equals("0")) {
-	            
-	            	text.setTextColor(Color.GRAY);
-	            	text.setPaintFlags(text.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-	            	text.setOnLongClickListener(this);
-	            } else {
-	            	
-	            	text.setPaintFlags(text.getPaintFlags() | Paint.FAKE_BOLD_TEXT_FLAG);
-	            }
-	            
-	            linear.addView(text);
+	            linear.addView(item);
             
         	} while(c.moveToNext());
         }
     }
-
-	@Override
-	public void onClick(View v) {
-			
-		Cursor c = db.rawQuery("SELECT active FROM items WHERE id = " + v.getId(), null);
-		
-		if(c.getCount() == 1) {
-		
-			c.moveToFirst();
-			String active = c.getString(c.getColumnIndex("active"));
-			
-			if(active.equals("1")) {
-				db.execSQL("UPDATE items SET active = 0 WHERE id = '" + v.getId() + "';");
-				
-				((TextView) v).setTextColor(Color.GRAY);
-				((TextView) v).setPaintFlags(((TextView) v).getPaintFlags() ^ Paint.FAKE_BOLD_TEXT_FLAG | Paint.STRIKE_THRU_TEXT_FLAG);
-				((TextView) v).setOnLongClickListener(this);
-			} else {
-				db.execSQL("UPDATE items SET active = 1 WHERE id = '" + v.getId() + "';");
-				
-				((TextView) v).setTextColor(Color.BLACK);
-				((TextView) v).setPaintFlags(((TextView) v).getPaintFlags() | Paint.FAKE_BOLD_TEXT_FLAG);
-				((TextView) v).setPaintFlags(((TextView) v).getPaintFlags()	^ Paint.STRIKE_THRU_TEXT_FLAG);
-				((TextView) v).setOnLongClickListener(null);
-			}
-		}
-	}
-
-	@Override
-	public boolean onLongClick(View v) {
-		
-		final View tv = v;
-		
-		AlertDialog.Builder b = new AlertDialog.Builder(this);
-		b.setPositiveButton(getText(R.string.button_ok), new AlertDialog.OnClickListener() {
-			
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				
-				db.execSQL("DELETE FROM items WHERE id = '" + tv.getId() + "';");
-				updateList();
-				dialog.cancel();
-			}
-		});
-		b.setNegativeButton(getText(R.string.button_cancel), new AlertDialog.OnClickListener() {
-			
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				
-				dialog.cancel();
-			}
-		});
-		
-		AlertDialog d = b.create();
-		d.setTitle(getText(R.string.dialog_remove_title));
-		d.setMessage(getText(R.string.dialog_remove_message));
-		
-		Vibrator vr = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-		vr.vibrate(30);
-		
-		d.show();
-		return false;
-	}
-	
 
     public void showAddElementDialog() {
     	
@@ -349,11 +306,5 @@ public class SimpleShoppingList extends Activity implements OnClickListener, OnL
 		d.setMessage(getText(R.string.dialog_exit_message));
 		
 		d.show();
-    }
-	
-    private void loadDatabase() {
-    	
-    	db = openOrCreateDatabase("items", MODE_PRIVATE, null);
-        db.execSQL("CREATE TABLE IF NOT EXISTS items (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(255), active BOOLEAN);");
     }
 }
