@@ -45,6 +45,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class SimpleShoppingList extends Activity {
@@ -53,17 +54,36 @@ public class SimpleShoppingList extends Activity {
 	SQLiteDatabase db;
 	
 	int categoryId;
+	String categoryName;
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        setContentView(R.layout.main);
+    	
+    	((Button) findViewById(R.id.button_add)).setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				
+				showAddElementDialog();
+			}
+		});
+        
         start();
+    }
+    
+    @Override
+    protected void onActivityResult(int requestCode,int resultCode,Intent data) 
+    {
+        start(resultCode);
     }
     
     public void start() {
     	
-    	start(0);
+    	start(1);
     }
     
     public void start(int id) {
@@ -86,31 +106,39 @@ public class SimpleShoppingList extends Activity {
         	db.execSQL("INSERT INTO items_backup SELECT id, name, active FROM items;");
         	db.execSQL("DROP TABLE items;");
         	db.execSQL("CREATE TABLE items (id INTEGER PRIMARY KEY AUTOINCREMENT, category_id INTEGER, name VARCHAR(255), active BOOLEAN);");
-        	db.execSQL("INSERT INTO items SELECT id, '0', name, active FROM items_backup");
+        	db.execSQL("INSERT INTO items SELECT id, '1', name, active FROM items_backup");
         	db.execSQL("DROP TABLE items_backup;");
         	db.execSQL("COMMIT;");
         }
         
-        Cursor c = db.rawQuery("SELECT name FROM categories WHERE id = 0;", null);
-        if(c.getCount() < 1) {
+        // Create default category if not existing
+        Cursor c = db.rawQuery("SELECT name FROM categories WHERE id = 1;", null);
+        if(c.getCount() == 0) {
         	
         	db.execSQL("INSERT INTO categories (id) VALUES (null);");
         }
-        
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        
-        setContentView(R.layout.main);
-    	
-    	((Button) findViewById(R.id.button_add)).setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				
-				showAddElementDialog();
-			}
-		});
+        c.close();
     	
     	Registry.add(Registry.DATABASE, db);
+    	
+        c = db.rawQuery("SELECT * FROM categories WHERE id = " + categoryId, null);
+        if(c.getCount() > 0) {
+        	
+        	c.moveToFirst();
+        	categoryName = c.getString(c.getColumnIndex("name"));
+        	
+        	if(categoryId == 1 && categoryName == null) {
+        		
+        		categoryName = getText(R.string.app_name).toString();
+        	}
+        } else {
+        	
+        	showToast(getText(R.string.err_cat_notfound).toString());
+        	start(1);
+        }
+        c.close();
+        
+        ((TextView) findViewById(R.id.Headline)).setText(categoryName);
     	
         updateList();
     }
@@ -127,7 +155,7 @@ public class SimpleShoppingList extends Activity {
     private void addElement(String name) {
 
         try {
-        	db.execSQL("INSERT INTO items (id, name, active) VALUES (NULL, '" + name + "', 1);");
+        	db.execSQL("INSERT INTO items (id, category_id, name, active) VALUES (NULL, '" + categoryId + "', '" + name + "', 1);");
         } catch (Exception e) {
         	showToast(e.getMessage());
         }
@@ -144,7 +172,9 @@ public class SimpleShoppingList extends Activity {
     	
     	if(item.getItemId() == R.id.menu_manage_lists) {
     		
-    		Intent manageListsIntent = new Intent(this, ManageLists.class);
+    		Intent manageListsIntent = new Intent(getApplicationContext(), ManageLists.class);
+    		manageListsIntent.putExtra("category_id", new String("" + categoryId));
+    		
     		startActivityForResult(manageListsIntent, 0);
     	}
     	
@@ -161,7 +191,7 @@ public class SimpleShoppingList extends Activity {
     	return false;
     }
     
-    private void showToast(String message) {
+    public void showToast(String message) {
     	
     	showToast(message, Toast.LENGTH_SHORT);
     }
@@ -262,7 +292,7 @@ public class SimpleShoppingList extends Activity {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				
-				db.execSQL("DELETE FROM items;");
+				db.execSQL("DELETE FROM items WHERE category_id = " + categoryId + ";");
 				updateList();
 				dialog.cancel();
 			}

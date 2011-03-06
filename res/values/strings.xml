@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Simple Shopping List!</string>
-    
-    <string name="manage_lists_title">My Lists</string>
+    <string name="manage_lists_name">My Lists</string>
     
     <string name="added">Added</string>
+    <string name="renamed_to">Renamed to</string>
     
     <string name="dialog_exit_title">Exit</string>
     <string name="dialog_exit_message">Do you really want to exit?</string>
@@ -18,6 +18,13 @@
     <string name="dialog_new_item_title">Add new Item</string>
     <string name="dialog_new_item_message">Enter new Item Name</string>
     
+    <string name="dialog_new_list_title">Add new List</string>
+    <string name="dialog_new_list_message">Enter new List Name</string>
+    
+    <string name="dialog_rename_list_title">Rename List</string>
+    <string name="dialog_rename_list_message">Enter new List Name</string>
+    
+    <string name="err_cat_notfound">Error: List not found.\nDisplaying default.</string>
     <string name="err_no_items_yet">No items yet.\nTo add some please hit "menu".</string>
     <string name="err_elem_not_entered">No Name entered</string>
     
@@ -28,4 +35,7 @@
     <string name="menu_manage_lists">Manage Lists</string>
     <string name="menu_add_item">Add item</string>
     <string name="menu_exit">Exit</string>
+    
+    <string name="menu_add_list">Add List</string>
+    <string name="menu_back">Go Back</string>
 </resources>

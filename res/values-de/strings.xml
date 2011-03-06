@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Einkaufsliste</string>
-    
-    <string name="manage_lists_title">Meine Listen</string>
+    <string name="manage_lists_name">Meine Listen</string>
     
     <string name="added">Hinzugefügt</string>
+    <string name="renamed_to">Unbenannt in</string>
     
     <string name="dialog_exit_title">Programm beenden</string>
     <string name="dialog_exit_message">Wollen Sie dieses Programm wirklich beenden?</string>
@@ -18,6 +18,13 @@
     <string name="dialog_new_item_title">Neuen Artikel hinzufügen</string>
     <string name="dialog_new_item_message">Bitte geben Sie den Namen des neuen Artikels an</string>
     
+    <string name="dialog_new_list_title">Neue Liste hinzufügen</string>
+    <string name="dialog_new_list_message">Bitte geben Sie den Namen der neuen Liste an</string>
+    
+    <string name="dialog_rename_list_title">Liste umbenennen</string>
+    <string name="dialog_rename_list_message">Bitte geben Sie den neuen Namen der Liste an</string>
+    
+    <string name="err_cat_notfound">Fehler: Liste konnte nicht gefunden werden.\nZeige Hauptliste.</string>
     <string name="err_no_items_yet">Noch keine Artikel vorhanden.\nZum hinzufügen klicken Sie bitte auf Menü.</string>
     <string name="err_elem_not_entered">Kein Name angegeben</string>
     
@@ -28,4 +35,7 @@
     <string name="menu_manage_lists">Listen verwalten</string>
     <string name="menu_add_item">Artikel hinzufügen</string>
     <string name="menu_exit">Beenden</string>
+    
+    <string name="menu_add_list">Liste hinzufügen</string>
+    <string name="menu_back">Zurück</string>
 </resources>

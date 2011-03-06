@@ -1,3 +1,27 @@
+/**
+ * at.mkweb.android.simpleshoppinglist.Item
+ * 
+ * LICENSE:
+ *
+ * This file is part of SimpleShoppingList, an Android app to create very simple shopping lists (http://android.mk-web.at/app/simpleshoppinglist.html).
+ *
+ * SimpleShoppingList is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any
+ * later version.
+ *
+ * NabDroi is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with software.  If not, see
+ * <http://www.gnu.org/licenses/>.
+ *
+ * @author Mario Klug <mario.klug@mk-web.at>
+ * @package at.mkweb.android.simpleshoppinglist
+ * 
+ * @license http://www.gnu.org/licenses/gpl.html
+ */
+
 package at.mkweb.android.simpleshoppinglist;
 
 import android.app.AlertDialog;
@@ -7,14 +31,15 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Vibrator;
+import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
 import android.widget.Button;
-import android.widget.LinearLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 
-public class Item extends LinearLayout implements OnClickListener, OnLongClickListener {
+public class Item extends TableRow implements OnClickListener, OnLongClickListener {
 
 	private Context context;
 	SQLiteDatabase db;
@@ -29,9 +54,9 @@ public class Item extends LinearLayout implements OnClickListener, OnLongClickLi
 		
 		this.context = context;
 		this.db = ((SQLiteDatabase) Registry.get(Registry.DATABASE));
-
-		setOrientation(LinearLayout.HORIZONTAL);
 	    
+		setGravity(Gravity.CENTER_VERTICAL);
+		
 	    setClickable(true);
 	    setOnLongClickListener(this);
 	    
@@ -51,7 +76,6 @@ public class Item extends LinearLayout implements OnClickListener, OnLongClickLi
 	public void create() {
 	
 		removeAllViews();
-		
 		addViews();
 	}
 	
@@ -63,7 +87,8 @@ public class Item extends LinearLayout implements OnClickListener, OnLongClickLi
 		textView.setId(1000000 + getId());
 		textView.setTextColor(Color.BLACK);
 		textView.setTextSize(26);
-	    //textView.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+		
+		addView(textView);
 	    
 	    if(active) {
 	    
@@ -72,21 +97,18 @@ public class Item extends LinearLayout implements OnClickListener, OnLongClickLi
 	    	
 	    	textView.setTextColor(Color.GRAY);
 	    	textView.setPaintFlags(textView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-	    	textView.setPadding(4, 0, 0, 0);
 	    	
 	    	Button removeButton = new Button(context);
-	    	removeButton.setText("x");
+	    	removeButton.setText(" ");
 	    	removeButton.setTextSize(8);
-	    	removeButton.setBackgroundDrawable(getResources().getDrawable(R.drawable.button_add));
+	    	removeButton.setBackgroundDrawable(getResources().getDrawable(android.R.drawable.ic_delete));
 	    	removeButton.setPaintFlags(removeButton.getPaintFlags() | Paint.FAKE_BOLD_TEXT_FLAG);
-	    	removeButton.setWidth(40);
-	    	removeButton.setWidth(40);
+	    	removeButton.setGravity(FOCUS_RIGHT);
+	    	
 	    	removeButton.setOnClickListener(this);
 			
 			addView(removeButton);
 	    }
-	    
-	    addView(textView);
 	}
 
 	@Override
