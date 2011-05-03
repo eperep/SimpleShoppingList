@@ -113,7 +113,7 @@ public class SimpleShoppingList extends Activity {
         }
         
         // Create default category if not existing
-        Cursor c = db.rawQuery("SELECT name FROM categories WHERE id = 1;", null);
+        Cursor c = db.rawQuery("SELECT name FROM categories WHERE id = " + categoryId, null);
         if(c.getCount() == 0) {
         	
         	db.execSQL("INSERT INTO categories (id) VALUES (null);");
