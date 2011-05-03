@@ -26,6 +26,7 @@ package at.mkweb.android.simpleshoppinglist;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -140,7 +141,10 @@ public class ManageLists extends Activity {
     
     private void createList(String name) {
     	
-    	db.execSQL("INSERT INTO categories (id, name) VALUES (NULL, '" + name + "');");
+    	ContentValues cv = new ContentValues();
+    	cv.put("name", name);
+    	
+    	db.insert("categories", null, cv);
     	updateView();
     }
     

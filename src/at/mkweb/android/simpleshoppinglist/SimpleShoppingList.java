@@ -26,6 +26,7 @@ package at.mkweb.android.simpleshoppinglist;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -155,7 +156,12 @@ public class SimpleShoppingList extends Activity {
     private void addElement(String name) {
 
         try {
-        	db.execSQL("INSERT INTO items (id, category_id, name, active) VALUES (NULL, '" + categoryId + "', '" + name + "', 1);");
+        	ContentValues cv = new ContentValues();
+        	cv.put("category_id", categoryId);
+        	cv.put("name", name);
+        	cv.put("active", 1);
+        	
+        	db.insert("items", null, cv);
         } catch (Exception e) {
         	showToast(e.getMessage());
         }
