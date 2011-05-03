@@ -88,6 +88,14 @@ public class Item extends TableRow implements OnClickListener, OnLongClickListen
 		textView.setTextColor(Color.BLACK);
 		textView.setTextSize(26);
 		
+		if(textView.getText().length() >= 19) {
+			textView.setTextSize(22);
+		}
+		
+		if(textView.getText().length() >= 23) {
+			textView.setTextSize(19);
+		}
+		
 		addView(textView);
 	    
 	    if(active) {
